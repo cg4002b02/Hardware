@@ -268,19 +268,22 @@ void loop(){
 
   imuData_t imuData = getImuReadings();
 
-  isMotion = isMotionDetected(imuData);
+  // isMotion = isMotionDetected(imuData);
 
-  if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
-  {
-    imuWindowIndex = 0;
-  }
+  // if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
+  // {
+  //   imuWindowIndex = 0;
+  // }
 
-  if (imuWindowIndex < IMU_WINDOW_SIZE) {
-    sendData(imuData);
-    // Serial.print("sending packet #");
-    // Serial.println(imuWindowIndex);
-    ++imuWindowIndex;      
-  }
+  // if (imuWindowIndex < IMU_WINDOW_SIZE) {
+  //   sendData(imuData);
+  //   // Serial.print("sending packet #");
+  //   // Serial.println(imuWindowIndex);
+  //   ++imuWindowIndex;      
+  // }
+
+  // stream data
+  sendData(imuData);
   
   delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }

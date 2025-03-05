@@ -415,21 +415,24 @@ void loop(){
 
   imuData_t imuData = getImuReadings();
 
-  isMotion = isMotionDetected(imuData);
+  // isMotion = isMotionDetected(imuData);
 
-  if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
-  {
-    imuWindowIndex = 0;
-  }
+  // if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
+  // {
+  //   imuWindowIndex = 0;
+  // }
 
-  // send data
-  if (imuWindowIndex < IMU_WINDOW_SIZE) {
-    // Serial.print("sending packet #");
-    // Serial.println(imuWindowIndex);
-    sendData(imuData);
+  // // send data
+  // if (imuWindowIndex < IMU_WINDOW_SIZE) {
+  //   // Serial.print("sending packet #");
+  //   // Serial.println(imuWindowIndex);
+  //   sendData(imuData);
 
-    ++imuWindowIndex;      
-  }
+  //   ++imuWindowIndex;      
+  // }
+
+  // steam data
+  sendData(imuData);
 
   // temp auto reload
   if (gameState.ammo == 0)
