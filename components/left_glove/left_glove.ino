@@ -34,24 +34,24 @@ int16_t gX, gY, gZ;
 // -----------------------------------------------------------------------------
 // Stop-and-wait for GUN packet
 // -----------------------------------------------------------------------------
-boolean hasSentGun = false;
-boolean hasAcknowledgedGun = false;
+bool hasSentGun = false;
+bool hasAcknowledgedGun = false;
 unsigned long timeoutStart = 0;
 const unsigned long TIMEOUT_VAL = 500;
 unsigned long lastGunSendTime = 0;
 unsigned long lastIMUSendTime = 0;
 const unsigned long IMU_INTERVAL = 1100;
-boolean lastsentGunindex = true;
+bool lastsentGunindex = true;
 
 // -----------------------------------------------------------------------------
 // Stop-and-wait for HIT packet
 // -----------------------------------------------------------------------------
-boolean hasSentHit = false;
-boolean hasAcknowledgedHit = false;
+bool hasSentHit = false;
+bool hasAcknowledgedHit = false;
 unsigned long timeoutStartHit = 0;
 const unsigned long TIMEOUT_VALHIT = 750;
 unsigned long lastHitSendTime = 0;
-boolean lastsentHitindex = true;
+bool lastsentHitindex = true;
 
 // Sensor dummy data (randomise between 3 for testing)
 int accX[][1] = {{1}, {5}, {-3}};
@@ -323,38 +323,38 @@ void loop(){
   // Process periodic tasks (sending sensor data, gun/hit packets, etc.) if handshake is CONFIRMED.
   unsigned long currentMillis = millis();
 
-  if (protoState == CONFIRMED && !hasSentGun && (currentMillis - lastGunSendTime >= 1000)) {
-      sendgun();
-      if (ammo > 0){
-        ammo -= 1;
-      } else {
-        ammo = 0;
-      }
-      lastGunSendTime = currentMillis;
-      hasSentGun = true;
-      hasAcknowledgedGun = false;
-      timeoutStart = lastGunSendTime;
-  }
+  // if (protoState == CONFIRMED && !hasSentGun && (currentMillis - lastGunSendTime >= 1000)) {
+  //     sendgun();
+  //     if (ammo > 0){
+  //       ammo -= 1;
+  //     } else {
+  //       ammo = 0;
+  //     }
+  //     lastGunSendTime = currentMillis;
+  //     hasSentGun = true;
+  //     hasAcknowledgedGun = false;
+  //     timeoutStart = lastGunSendTime;
+  // }
 
-  if (protoState == CONFIRMED && hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
-      resendGunpacket();
-      timeoutStart = currentMillis;
-      lastGunSendTime = currentMillis;
-  }
+  // if (protoState == CONFIRMED && hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
+  //     resendGunpacket();
+  //     timeoutStart = currentMillis;
+  //     lastGunSendTime = currentMillis;
+  // }
 
-  if (protoState == CONFIRMED && !hasSentHit && (currentMillis - lastHitSendTime >= 1500)) {
-      sendhit();
-      lastHitSendTime = currentMillis;
-      hasSentHit = true;
-      hasAcknowledgedHit = false;
-      timeoutStartHit = lastHitSendTime;
-  }
+  // if (protoState == CONFIRMED && !hasSentHit && (currentMillis - lastHitSendTime >= 1500)) {
+  //     sendhit();
+  //     lastHitSendTime = currentMillis;
+  //     hasSentHit = true;
+  //     hasAcknowledgedHit = false;
+  //     timeoutStartHit = lastHitSendTime;
+  // }
 
-  if (protoState == CONFIRMED && hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
-      resendHitpacket();
-      timeoutStartHit = currentMillis;
-      lastHitSendTime = currentMillis;
-  }
+  // if (protoState == CONFIRMED && hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
+  //     resendHitpacket();
+  //     timeoutStartHit = currentMillis;
+  //     lastHitSendTime = currentMillis;
+  // }
 
   delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }
