@@ -471,7 +471,7 @@ void sendData(imuData_t imuData){
   packet.gX = imuData.gx;
   packet.gY = imuData.gy;
   packet.gZ = imuData.gz;
-  packet.y = 0;
+  packet.y = buttonPressed ? 1 : 0;
   packet.p = 0;
   packet.r = 0;
   packet.start_move = 0; 
