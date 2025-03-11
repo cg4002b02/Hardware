@@ -12,7 +12,7 @@
 #define HIT 3
 #define GUN 4 
 #define HEADER '$'
-#define IMU_WINDOW_SIZE 20
+#define IMU_WINDOW_SIZE 30
 
 #define LED_PIN 5
 #define BUTTON_PIN 2
@@ -83,7 +83,7 @@ struct imuData_t
 
 bool buttonPressed = false;
 const float GRYO_THRESHOLD = 112;
-const float ACCEL_THRESHOLD = 12;
+const float ACCEL_THRESHOLD = 9;
 
 bool isMotion = false;
 int imuWindowIndex = IMU_WINDOW_SIZE;
@@ -177,9 +177,9 @@ void setup_mpu()
     delay(500);
   }
 
-  mpu.calibrateGyro();
-  mpu.setThreshold(3);
-  mpu.setDLPFMode(MPU6050_DLPF_2); // mode 2 for general movement detection
+  // mpu.calibrateGyro();
+  // mpu.setThreshold(3);
+  // mpu.setDLPFMode(MPU6050_DLPF_2); // mode 2 for general movement detection
 }
 
 void setupLed()
@@ -242,7 +242,7 @@ void shootAmmo(unsigned long currentMillis)
     }
     else
     {
-      Serial.println("No ammo left. Please reload...");
+      // Serial.println("No ammo left. Please reload...");
     }
   }
   if (digitalRead(BUTTON_PIN) == LOW)
@@ -403,8 +403,8 @@ void updateGameState() {
 void loop() {  
   // If handshake is not confirmed, process only handshake-related bytes.
   if (protoState != CONFIRMED) {
-    setup_mpu();
     initiateHandshake();
+
     // Do nothing else until handshake is CONFIRMED.
     return;
   }
@@ -413,14 +413,25 @@ void loop() {
   // Now that handshake is CONFIRMED, process update packets FROM python
   updateGameState();
 
-  // stream data
-  sendData();
+  imuData_t imuData = getImuReadings();
+
+  isMotion = isMotionDetected(imuData);
+  if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
+  {
+    imuWindowIndex = 0;
+  }
+
+  // send data in batch of IMU_WINDOW_SIZE
+  if (imuWindowIndex < IMU_WINDOW_SIZE) {
+    sendData();
+    ++imuWindowIndex;
+  }
 
   // temp auto reload
   if (gameState.ammo == 0)
   {
     // Serial.println("Reloading...");
-    delay(500);
+    // delay(500);
     // Serial.println("Done reloading");
     gameState.ammo = 6;
   }

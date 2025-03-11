@@ -9,7 +9,7 @@
 #define HIT 3
 #define GUN 4 
 #define HEADER '$'
-#define IMU_WINDOW_SIZE 20
+#define IMU_WINDOW_SIZE 30
 
 CRC8 crc(0x07);
 
@@ -124,9 +124,9 @@ void setup_mpu()
     delay(500);
   }
 
-  mpu.calibrateGyro();
-  mpu.setThreshold(3);
-  mpu.setDLPFMode(MPU6050_DLPF_2); // mode 2 for general movement detection
+  // mpu.calibrateGyro();
+  // mpu.setThreshold(3);
+  // mpu.setDLPFMode(MPU6050_DLPF_2); // mode 2 for general movement detection
 }
 
 imuData_t getImuReadings()
@@ -252,13 +252,14 @@ void updateGameState() {
     }
   }
 }
+bool initialGryoCalibrated = false;
 
-void loop(){
+void loop() {
   // If handshake is not confirmed, process only handshake-related bytes.
   if (protoState != CONFIRMED) {
-    setup_mpu(); // setup MPU6050 again when disconnected
     initiateHandshake();
-    // Do nothing else until handshake is CONFIRMED.
+
+    // Do nothing else until handshake is CONFIRMED or when gyro is sending values for all axis.
     return;
   }
 
@@ -271,6 +272,8 @@ void loop(){
   
   delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }
+
+//0x506583775D62
 
 //---------------------------------------------------------
 // Packet Sending Functions
