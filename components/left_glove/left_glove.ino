@@ -9,7 +9,7 @@
 #define HIT 3
 #define GUN 4 
 #define HEADER '$'
-#define IMU_WINDOW_SIZE 20
+#define IMU_WINDOW_SIZE 30
 
 CRC8 crc(0x07);
 
@@ -107,7 +107,7 @@ uint8_t calculateCRC8(uint8_t *data, int len) {
 void setup() {
     Serial.begin(115200);
     // Flush any residual data
-    while (Serial.available() > 0) {
+    if (Serial.available() > 0) {
       Serial.read();
     }
     //reset();
@@ -117,16 +117,16 @@ void setup() {
 
 void setup_mpu()
 {
-  Serial.println("Init MPU6050");
+  // Serial.println("Init MPU6050");
   while (!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
   {
-    Serial.println("No MPU");
+    // Serial.println("No MPU");
     delay(500);
   }
 
-  mpu.calibrateGyro();
-  mpu.setThreshold(3);
-  mpu.setDLPFMode(MPU6050_DLPF_2); // mode 2 for general movement detection
+  // mpu.calibrateGyro();
+  // mpu.setThreshold(3);
+  // mpu.setDLPFMode(MPU6050_DLPF_2); // mode 2 for general movement detection
 }
 
 imuData_t getImuReadings()
@@ -252,13 +252,14 @@ void updateGameState() {
     }
   }
 }
+bool initialGryoCalibrated = false;
 
-void loop(){
-  
+void loop() {
   // If handshake is not confirmed, process only handshake-related bytes.
   if (protoState != CONFIRMED) {
     initiateHandshake();
-    // Do nothing else until handshake is CONFIRMED.
+
+    // Do nothing else until handshake is CONFIRMED or when gyro is sending values for all axis.
     return;
   }
 
@@ -266,41 +267,29 @@ void loop(){
   // Now that handshake is CONFIRMED, process update packets FROM python
   updateGameState();
 
-  imuData_t imuData = getImuReadings();
-
-  // isMotion = isMotionDetected(imuData);
-
-  // if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
-  // {
-  //   imuWindowIndex = 0;
-  // }
-
-  // if (imuWindowIndex < IMU_WINDOW_SIZE) {
-  //   sendData(imuData);
-  //   // Serial.print("sending packet #");
-  //   // Serial.println(imuWindowIndex);
-  //   ++imuWindowIndex;      
-  // }
-
   // stream data
-  sendData(imuData);
+  sendData();
   
   delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }
 
+//0x506583775D62
+
 //---------------------------------------------------------
 // Packet Sending Functions
 //---------------------------------------------------------
-void sendData(imuData_t imuData){
+void sendData(){
+  Vector normGyro = mpu.readNormalizeGyro();
+  Vector normAccel = mpu.readNormalizeAccel();
+
   Datapacket packet;
   packet.type = IMU_DATA;
-  int index = random(0, 3); //toggle dummy data
-  packet.aX = imuData.ax;
-  packet.aY = imuData.ay;
-  packet.aZ = imuData.az;
-  packet.gX = imuData.gx;
-  packet.gY = imuData.gy;
-  packet.gZ = imuData.gz;
+  packet.aX = normAccel.XAxis;
+  packet.aY = normAccel.YAxis;
+  packet.aZ = normAccel.ZAxis;
+  packet.gX = normGyro.XAxis;
+  packet.gY = normGyro.YAxis;
+  packet.gZ = normGyro.ZAxis;
   packet.y = 0;
   packet.p = 0;
   packet.r = 0;
@@ -332,4 +321,3 @@ long getChecksum(Datapacket packet){
 long getAckChecksum(Ackpacket packet){
   return packet.type ^ packet.padding_1 ^ packet.padding_2 ^ packet.padding_3 ^ packet.padding_4 ^ packet.padding_5 ^ packet.padding_6 ^ packet.padding_7 ^ packet.padding_8 ^ packet.padding_9;
 }
-
