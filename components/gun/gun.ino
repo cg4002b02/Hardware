@@ -88,6 +88,8 @@ const float ACCEL_THRESHOLD = 12;
 bool isMotion = false;
 int imuWindowIndex = IMU_WINDOW_SIZE;
 
+char incoming;
+
 struct Datapacket {
   int8_t type; //bhhhhhhhbbbh
   int16_t aX; 
@@ -146,7 +148,7 @@ uint8_t calculateCRC8(uint8_t *data, int len) {
 void setup() {
     Serial.begin(115200);
     // Flush any residual data
-    while (Serial.available() > 0) {
+    if (Serial.available() > 0) {
       Serial.read();
     }
     //reset();
@@ -168,10 +170,10 @@ void setup() {
 
 void setup_mpu()
 {
-  Serial.println("Init MPU6050");
+  // Serial.println("Init MPU6050");
   while (!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
   {
-    Serial.println("No MPU");
+    // Serial.println("No MPU");
     delay(500);
   }
 
@@ -398,12 +400,10 @@ void updateGameState() {
   }
 }
 
-
-void loop(){
-  char incoming;
-  
+void loop() {  
   // If handshake is not confirmed, process only handshake-related bytes.
   if (protoState != CONFIRMED) {
+    setup_mpu();
     initiateHandshake();
     // Do nothing else until handshake is CONFIRMED.
     return;
@@ -413,26 +413,8 @@ void loop(){
   // Now that handshake is CONFIRMED, process update packets FROM python
   updateGameState();
 
-  imuData_t imuData = getImuReadings();
-
-  // isMotion = isMotionDetected(imuData);
-
-  // if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
-  // {
-  //   imuWindowIndex = 0;
-  // }
-
-  // // send data
-  // if (imuWindowIndex < IMU_WINDOW_SIZE) {
-  //   // Serial.print("sending packet #");
-  //   // Serial.println(imuWindowIndex);
-  //   sendData(imuData);
-
-  //   ++imuWindowIndex;      
-  // }
-
-  // steam data
-  sendData(imuData);
+  // stream data
+  sendData();
 
   // temp auto reload
   if (gameState.ammo == 0)
@@ -461,16 +443,36 @@ void loop(){
 //---------------------------------------------------------
 // Packet Sending Functions
 //---------------------------------------------------------
-void sendData(imuData_t imuData){
+void sendData() {
+  // Serial.print("ax: ");
+  // Serial.print(imuData.ax);
+  // Serial.print(", ");
+  // Serial.print("ay: ");
+  // Serial.print(imuData.ay);
+  // Serial.print(", ");
+  // Serial.print("az: ");
+  // Serial.print(imuData.az);
+  // Serial.print(", ");
+  // Serial.print("gx: ");
+  // Serial.print(imuData.gx);
+  // Serial.print(", ");
+  // Serial.print("gy: ");
+  // Serial.print(imuData.gy);
+  // Serial.print(", ");
+  // Serial.print("gz: ");
+  // Serial.println(imuData.gz);
+
+  Vector normGyro = mpu.readNormalizeGyro();
+  Vector normAccel = mpu.readNormalizeAccel();
+
   Datapacket packet;
   packet.type = IMU_DATA;
-  int index = random(0, 3); //toggle dummy data
-  packet.aX = imuData.ax;
-  packet.aY = imuData.ay;
-  packet.aZ = imuData.az;
-  packet.gX = imuData.gx;
-  packet.gY = imuData.gy;
-  packet.gZ = imuData.gz;
+  packet.aX = normAccel.XAxis;
+  packet.aY = normAccel.YAxis;
+  packet.aZ = normAccel.ZAxis;
+  packet.gX = normGyro.XAxis;
+  packet.gY = normGyro.YAxis;
+  packet.gZ = normGyro.ZAxis;
   packet.y = buttonPressed ? 1 : 0;
   packet.p = 0;
   packet.r = 0;
