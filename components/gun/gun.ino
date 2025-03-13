@@ -415,17 +415,18 @@ void loop() {
 
   imuData_t imuData = getImuReadings();
 
-  isMotion = isMotionDetected(imuData);
-  if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
-  {
-    imuWindowIndex = 0;
-  }
+  // isMotion = isMotionDetected(imuData);
+  // if (imuWindowIndex == IMU_WINDOW_SIZE && isMotion)
+  // {
+  //   imuWindowIndex = 0;
+  // }
 
-  // send data in batch of IMU_WINDOW_SIZE
-  if (imuWindowIndex < IMU_WINDOW_SIZE) {
-    sendData();
-    ++imuWindowIndex;
-  }
+  // // send data in batch of IMU_WINDOW_SIZE
+  // if (imuWindowIndex < IMU_WINDOW_SIZE) {
+  //   sendData();
+  //   ++imuWindowIndex;
+  // }
+  sendData();
 
   // temp auto reload
   if (gameState.ammo == 0)
