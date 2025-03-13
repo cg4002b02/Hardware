@@ -39,8 +39,8 @@ int updateIndex = 0;
 unsigned long updateStartTime = 0;           
 const unsigned long UPDATE_TIMEOUT = 100;      
 
-unsigned long points = 100;
-unsigned long ammo = 6;
+// unsigned long points = 100;
+// unsigned long ammo = 6;
 
 int16_t aX, aY, aZ;
 int16_t gX, gY, gZ;
@@ -238,6 +238,8 @@ void shootAmmo(unsigned long currentMillis)
 
       buttonPressed = true;
       sendIrSignal();
+
+      // TODO: might not need since getting gameStates from python
       --gameState.ammo;
     }
     else
@@ -365,13 +367,13 @@ void updateGameState() {
               int value = (updateBuffer[2] << 8) | updateBuffer[1];  // little-endian
               switch (updateBuffer[0]) {
                 case 'B':  
-                  ammo = value;
+                  gameState.ammo = value;
                   break;
                 case 'E':  
-                  points = value;
+                  gameState.health = value;
                   break;
                 case 'W':  
-                  ammo = 6;
+                  gameState.ammo = 6;
                   break;
               }
               currentUpdateState = IDLE;
@@ -511,9 +513,8 @@ void sendAck() {
 
 void sendGun() {
   int index = random(0, 2); //toggle dummy data
-  lastGunpacket.type = GUN;
   lastGunpacket.ammo_state = gameState.ammo;
-  lastGunpacket.trigger_state = index; 
+  lastGunpacket.trigger_state = 0; 
   lastGunpacket.padding_1 = 0;
   lastGunpacket.padding_2 = 0;
   lastGunpacket.padding_3 = 0;
