@@ -39,8 +39,8 @@ int updateIndex = 0;
 unsigned long updateStartTime = 0;           
 const unsigned long UPDATE_TIMEOUT = 100;      
 
-unsigned long points = 100;
-unsigned long ammo = 6;
+// unsigned long points = 100;
+// unsigned long ammo = 6;
 
 int16_t aX, aY, aZ;
 int16_t gX, gY, gZ;
@@ -365,13 +365,13 @@ void updateGameState() {
               int value = (updateBuffer[2] << 8) | updateBuffer[1];  // little-endian
               switch (updateBuffer[0]) {
                 case 'B':  
-                  ammo = value;
+                  gameState.ammo = value;
                   break;
                 case 'E':  
-                  points = value;
+                  gameState.health = value;
                   break;
                 case 'W':  
-                  ammo = 6;
+                  gameState.ammo = 6;
                   break;
               }
               currentUpdateState = IDLE;
