@@ -35,7 +35,7 @@ UpdateState currentUpdateState = IDLE;
 byte updateBuffer[3];
 int updateIndex = 0;  
 unsigned long updateStartTime = 0;           
-const unsigned long UPDATE_TIMEOUT = 100;    
+const unsigned long UPDATE_TIMEOUT = 500;    
 
 struct Hitpacket {
   int8_t type;
@@ -101,6 +101,7 @@ boolean hasSentHit = false;
 boolean hasAcknowledgedHit = false;
 unsigned long timeoutStartHit = 0;
 const unsigned long TIMEOUT_VALHIT = 750;
+const unsigned long TIMEOUT_LAST_SENT_HIT = 2000;
 unsigned long lastHitSendTime = 0;
 boolean lastsentHitindex = true;
 
@@ -160,6 +161,7 @@ void receive_ir_signal(unsigned long currentMillis)
       // Serial.print(", Command: ");
       // Serial.println(command, HEX);
 
+      sendhit();
       got_shot = true;
       timeoutStartHit = currentMillis;
       hasSentHit = true;
@@ -400,6 +402,12 @@ void loop() {
     // hasSentHit = true;
     // hasAcknowledgedHit = false;
     // timeoutStartHit = lastHitSendTime;
+  }
+
+  // sendhit every 2 seconds
+  if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
+    sendhit();
+    lastHitSendTime = currentMillis;
   }
 
   if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {

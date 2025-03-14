@@ -37,7 +37,7 @@ UpdateState currentUpdateState = IDLE;
 byte updateBuffer[3];
 int updateIndex = 0;  
 unsigned long updateStartTime = 0;           
-const unsigned long UPDATE_TIMEOUT = 100;      
+const unsigned long UPDATE_TIMEOUT = 500;  
 
 // unsigned long points = 100;
 // unsigned long ammo = 6;
@@ -199,12 +199,12 @@ void sendIrSignal()
   uint8_t address = 0x11;
   uint8_t command = 0x22;
 
-  Serial.println("Sending IR signal...");
+  // Serial.println("Sending IR signal...");
   IrSender.sendNEC(address, command, 0); // NEC protocol
-  Serial.print("Sent NEC IR Signal - Address = ");
-  Serial.print(address, HEX);
-  Serial.print(", Command = ");
-  Serial.println(command, HEX);
+  // Serial.print("Sent NEC IR Signal - Address = ");
+  // Serial.print(address, HEX);
+  // Serial.print(", Command = ");
+  // Serial.println(command, HEX);
 }
 
 imuData_t getImuReadings()
@@ -229,7 +229,6 @@ void shootAmmo(unsigned long currentMillis)
   {
     if (gameState.ammo > 0)
     {
-      // Serial.println("shoot");
       sendGun();
 
       hasSentGun = true;
@@ -240,7 +239,7 @@ void shootAmmo(unsigned long currentMillis)
       sendIrSignal();
 
       // TODO: might not need since getting gameStates from python
-      --gameState.ammo;
+      // --gameState.ammo;
     }
     else
     {
@@ -363,13 +362,21 @@ void updateGameState() {
           return;
       } else {
           updateBuffer[updateIndex++] = incoming;
+          Serial.print("incoming#");
+          Serial.print(updateIndex - 1);
+          Serial.println(updateBuffer[updateIndex - 1]);
           if (updateIndex >= 3) {
+              Serial.println("inside if block");
               int value = (updateBuffer[2] << 8) | updateBuffer[1];  // little-endian
               switch (updateBuffer[0]) {
                 case 'B':  
+                  Serial.print("get ammo game state: ");
+                  Serial.println(value);
                   gameState.ammo = value;
                   break;
                 case 'E':  
+                  // Serial.print("get health game state: ");
+                  // Serial.println(value);
                   gameState.health = value;
                   break;
                 case 'W':  
@@ -512,7 +519,7 @@ void sendAck() {
 }
 
 void sendGun() {
-  int index = random(0, 2); //toggle dummy data
+  lastGunpacket.type = GUN;
   lastGunpacket.ammo_state = gameState.ammo;
   lastGunpacket.trigger_state = 0; 
   lastGunpacket.padding_1 = 0;
