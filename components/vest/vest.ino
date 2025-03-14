@@ -80,6 +80,7 @@ struct gameState_t
 };
 
 gameState_t gameState = {100, 6};
+int prev_health = 100;
 int got_shot = false;
 
 // -----------------------------------------------------------------------------
@@ -168,11 +169,11 @@ void receive_ir_signal(unsigned long currentMillis)
       hasAcknowledgedHit = false;
 
       // TODO: might not need since getting gameStates from python, but have to trigger play_buzzer() when shot. Maybe if previous health != current health, play_buzzer()
-      if (gameState.health > 0)
-      {
-        gameState.health -= BULLET_DAMAGE;
-        play_buzzer();
-      }
+      // if (gameState.health > 0)
+      // {
+      //   gameState.health -= BULLET_DAMAGE;
+      //   play_buzzer();
+      // }
     }
     else
     {
@@ -404,7 +405,13 @@ void loop() {
     // timeoutStartHit = lastHitSendTime;
   }
 
-  // sendhit every 2 seconds
+  // play buzzer when shot
+  if (gameState.health < prev_health) {
+    play_buzzer();
+  }
+  prev_health = gameState.health;
+
+  // sendhit every 2 seconds to prevent beetle from disconnecting
   if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
     sendhit();
     lastHitSendTime = currentMillis;
