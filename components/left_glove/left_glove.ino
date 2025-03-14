@@ -270,7 +270,7 @@ void loop() {
   // stream data
   sendData();
   
-  delay(25); // period = 50ms = 20Hz -> 20 samples per second
+  delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }
 
 //0x506583775D62
