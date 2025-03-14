@@ -370,8 +370,8 @@ void updateGameState() {
               int value = (updateBuffer[2] << 8) | updateBuffer[1];  // little-endian
               switch (updateBuffer[0]) {
                 case 'B':  
-                  Serial.print("get ammo game state: ");
-                  Serial.println(value);
+                  // Serial.print("get ammo game state: ");
+                  // Serial.println(value);
                   gameState.ammo = value;
                   break;
                 case 'E':  
