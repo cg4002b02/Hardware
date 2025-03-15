@@ -13,7 +13,7 @@
 
 CRC8 crc(0x07);
 
-void (*reset) (void) = 0;
+//void (*reset) (void) = 0;
 
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
@@ -185,7 +185,7 @@ void initiateHandshake() {
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        reset();
+        //reset();
         break;
 
       default:
@@ -235,7 +235,7 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          reset();
+          //reset();
           break;
         case 'g':
           // Gun ACK from Python.
@@ -314,10 +314,10 @@ void sendAck() {
   Serial.write((uint8_t *)&packet, sizeof(packet));
 }
 
-long getChecksum(Datapacket packet){
+int16_t getChecksum(Datapacket packet){
   return packet.type ^ packet.aX ^ packet.aY ^ packet.aZ ^ packet.gX ^ packet.gY ^ packet.gZ ^ packet.y ^ packet.p ^ packet.r ^ packet.start_move;
 }
 
-long getAckChecksum(Ackpacket packet){
+int16_t getAckChecksum(Ackpacket packet){
   return packet.type ^ packet.padding_1 ^ packet.padding_2 ^ packet.padding_3 ^ packet.padding_4 ^ packet.padding_5 ^ packet.padding_6 ^ packet.padding_7 ^ packet.padding_8 ^ packet.padding_9;
 }
