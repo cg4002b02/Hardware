@@ -191,7 +191,7 @@ void setupLed()
 void setupIrTransmitter()
 {
   IrSender.begin(IR_EMITTER_PIN);
-  Serial.println("IR Transmitter initialized.");
+  //Serial.println("IR Transmitter initialized.");
 }
 
 void sendIrSignal()
@@ -362,11 +362,11 @@ void updateGameState() {
           return;
       } else {
           updateBuffer[updateIndex++] = incoming;
-          Serial.print("incoming#");
-          Serial.print(updateIndex - 1);
-          Serial.println(updateBuffer[updateIndex - 1]);
+          //Serial.print("incoming#");
+          //Serial.print(updateIndex - 1);
+          //Serial.println(updateBuffer[updateIndex - 1]);
           if (updateIndex >= 3) {
-              Serial.println("inside if block");
+              //Serial.println("inside if block");
               int value = (updateBuffer[2] << 8) | updateBuffer[1];  // little-endian
               switch (updateBuffer[0]) {
                 case 'B':  

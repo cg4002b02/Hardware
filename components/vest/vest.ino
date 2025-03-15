@@ -102,7 +102,7 @@ boolean hasSentHit = false;
 boolean hasAcknowledgedHit = false;
 unsigned long timeoutStartHit = 0;
 const unsigned long TIMEOUT_VALHIT = 750;
-const unsigned long TIMEOUT_LAST_SENT_HIT = 2000;
+const unsigned long TIMEOUT_LAST_SENT_HIT = 100;
 unsigned long lastHitSendTime = 0;
 boolean lastsentHitindex = true;
 
@@ -110,7 +110,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  Serial.println("Initializing...");
+  //Serial.println("Initializing...");
   // LED strip setup
   setup_led();
 
@@ -120,7 +120,7 @@ void setup()
   // Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
 
-  Serial.println("Done init");
+  //Serial.println("Done init");
 }
 
 void setup_led()
@@ -134,7 +134,7 @@ void setup_led()
 void setup_ir_receiver()
 {
   IrReceiver.begin(IR_RECEIVER_PIN, ENABLE_LED_FEEDBACK); // Enable feedback LED if available
-  Serial.println("IR Receiver initialized.");
+  //Serial.println("IR Receiver initialized.");
 }
 
 void receive_ir_signal(unsigned long currentMillis)
@@ -336,6 +336,7 @@ void initiateHandshake() {
       case 'a':
         if (protoState == WAITING_FOR_ACK) {
           protoState = CONFIRMED;
+          //Serial.println("I HAVE CONFIRMED HANDSHAKE!");
         }
         break;
       case 'r':  // Reset command from Python, if any.
