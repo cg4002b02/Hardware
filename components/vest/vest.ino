@@ -35,7 +35,7 @@ UpdateState currentUpdateState = IDLE;
 byte updateBuffer[3];
 int updateIndex = 0;  
 unsigned long updateStartTime = 0;           
-const unsigned long UPDATE_TIMEOUT = 100;    
+const unsigned long UPDATE_TIMEOUT = 500;    
 
 struct Hitpacket {
   int8_t type;
@@ -80,6 +80,7 @@ struct gameState_t
 };
 
 gameState_t gameState = {100, 6};
+int prev_health = 100;
 int got_shot = false;
 
 // -----------------------------------------------------------------------------
@@ -101,6 +102,7 @@ boolean hasSentHit = false;
 boolean hasAcknowledgedHit = false;
 unsigned long timeoutStartHit = 0;
 const unsigned long TIMEOUT_VALHIT = 750;
+const unsigned long TIMEOUT_LAST_SENT_HIT = 2000;
 unsigned long lastHitSendTime = 0;
 boolean lastsentHitindex = true;
 
@@ -160,17 +162,18 @@ void receive_ir_signal(unsigned long currentMillis)
       // Serial.print(", Command: ");
       // Serial.println(command, HEX);
 
+      sendhit();
       got_shot = true;
       timeoutStartHit = currentMillis;
       hasSentHit = true;
       hasAcknowledgedHit = false;
 
       // TODO: might not need since getting gameStates from python, but have to trigger play_buzzer() when shot. Maybe if previous health != current health, play_buzzer()
-      if (gameState.health > 0)
-      {
-        gameState.health -= BULLET_DAMAGE;
-        play_buzzer();
-      }
+      // if (gameState.health > 0)
+      // {
+      //   gameState.health -= BULLET_DAMAGE;
+      //   play_buzzer();
+      // }
     }
     else
     {
@@ -400,6 +403,18 @@ void loop() {
     // hasSentHit = true;
     // hasAcknowledgedHit = false;
     // timeoutStartHit = lastHitSendTime;
+  }
+
+  // play buzzer when shot
+  if (gameState.health < prev_health) {
+    play_buzzer();
+  }
+  prev_health = gameState.health;
+
+  // sendhit every 2 seconds to prevent beetle from disconnecting
+  if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
+    sendhit();
+    lastHitSendTime = currentMillis;
   }
 
   if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
