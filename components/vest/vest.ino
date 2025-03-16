@@ -110,6 +110,9 @@ void setup()
 {
   Serial.begin(115200);
 
+  if(Serial.available() > 0){
+    Serial.read();
+  }
   //Serial.println("Initializing...");
   // LED strip setup
   setup_led();
@@ -346,6 +349,9 @@ void initiateHandshake() {
 
       default:
         // Ignore any other data.
+        while(Serial.available()){
+          Serial.read();
+        }
         break;
     }
   }
@@ -410,13 +416,14 @@ void loop() {
   if (gameState.health != prev_health) {
     play_buzzer();
   }
+
   prev_health = gameState.health;
 
+  sendhit();
   // sendhit every 2 seconds to prevent beetle from disconnecting
-  if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
-    sendhit();
-    lastHitSendTime = currentMillis;
-  }
+  // if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
+  //   lastHitSendTime = currentMillis;
+  // }
 
   // if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
   //     resendHitpacket();
@@ -425,5 +432,5 @@ void loop() {
 
   update_led();
 
-  // delay(50);
+  delay(50);
 }
