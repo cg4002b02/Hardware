@@ -227,8 +227,6 @@ void shootAmmo(unsigned long currentMillis)
 {
   if (!buttonPressed && digitalRead(BUTTON_PIN) == HIGH)
   {
-    if (gameState.ammo > 0)
-    {
       sendGun();
 
       hasSentGun = true;
@@ -238,13 +236,6 @@ void shootAmmo(unsigned long currentMillis)
       buttonPressed = true;
       sendIrSignal();
 
-      // TODO: might not need since getting gameStates from python
-      // --gameState.ammo;
-    }
-    else
-    {
-      // Serial.println("No ammo left. Please reload...");
-    }
   }
   if (digitalRead(BUTTON_PIN) == LOW)
   {
@@ -438,25 +429,23 @@ void loop() {
   sendData();
 
   // temp auto reload
-  if (gameState.ammo == 0)
-  {
-    // Serial.println("Reloading...");
-    // delay(500);
-    // Serial.println("Done reloading");
-    gameState.ammo = 6;
-  }
+  // if (gameState.ammo == 0)
+  // {
+  //   // Serial.println("Reloading...");
+  //   // delay(500);
+  //   // Serial.println("Done reloading");
+  //   gameState.ammo = 6;
+  // }
 
   unsigned long currentMillis = millis();
 
-  if (!hasSentGun) {
-    shootAmmo(currentMillis);
-  }
+  shootAmmo(currentMillis);
   updateLed();
 
-  if (hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
-      resendGunpacket();
-      timeoutStart = currentMillis;
-  }
+  // if (hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
+  //     resendGunpacket();
+  //     timeoutStart = currentMillis;
+  // }
   
   delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }

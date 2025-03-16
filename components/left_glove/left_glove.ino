@@ -23,7 +23,7 @@ UpdateState currentUpdateState = IDLE;
 byte updateBuffer[3];
 int updateIndex = 0;  
 unsigned long updateStartTime = 0;           
-const unsigned long UPDATE_TIMEOUT = 100;      
+const unsigned long UPDATE_TIMEOUT = 500;      
 
 unsigned long points = 100;
 unsigned long ammo = 6;

@@ -397,14 +397,14 @@ void loop() {
 
   unsigned long currentMillis = millis();
 
-  if (!hasSentHit) {
-    receive_ir_signal(currentMillis);
-    // sendhit();
-    // lastHitSendTime = currentMillis;
-    // hasSentHit = true;
-    // hasAcknowledgedHit = false;
-    // timeoutStartHit = lastHitSendTime;
-  }
+  // if (!hasSentHit) {
+  //   receive_ir_signal(currentMillis);
+  //   // sendhit();
+  //   // lastHitSendTime = currentMillis;
+  //   // hasSentHit = true;
+  //   // hasAcknowledgedHit = false;
+  //   // timeoutStartHit = lastHitSendTime;
+  // }
 
   // play buzzer when shot
   if (gameState.health < prev_health) {
@@ -418,10 +418,10 @@ void loop() {
     lastHitSendTime = currentMillis;
   }
 
-  if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
-      resendHitpacket();
-      timeoutStartHit = currentMillis;
-  }
+  // if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
+  //     resendHitpacket();
+  //     timeoutStartHit = currentMillis;
+  // }
 
   update_led();
 
