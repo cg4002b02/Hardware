@@ -329,6 +329,9 @@ void initiateHandshake() {
 
       default:
         // Ignore any other data.
+        while(Serial.available()){
+          Serial.read();
+        }
         break;
     }
   }
@@ -394,6 +397,9 @@ void updateGameState() {
           hasSentHit = false;          // Hit ACK from Python.
           break;
         default:
+          while(Serial.available()){
+            Serial.read();
+          }
           break;
       }
     }

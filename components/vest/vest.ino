@@ -407,7 +407,7 @@ void loop() {
   // }
 
   // play buzzer when shot
-  if (gameState.health < prev_health) {
+  if (gameState.health != prev_health) {
     play_buzzer();
   }
   prev_health = gameState.health;
