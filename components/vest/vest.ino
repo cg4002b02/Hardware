@@ -4,6 +4,7 @@
 #include <IRremote.h>
 #include <FastLED.h>
 #include <IRremote.h>
+#include <avr/wdt.h>
 
 #define HANDSHAKE 'h'
 #define ACK 1
@@ -25,7 +26,11 @@
 
 CRC8 crc(0x07);
 
-void (*reset) (void) = 0;
+// void (*reset) (void) = 0;
+void reset() {
+  wdt_enable(WDTO_15MS);
+  while (1) {}
+}
 
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
