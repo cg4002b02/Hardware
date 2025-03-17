@@ -27,6 +27,8 @@ CRGB leds[NUM_LEDS];
 
 CRC8 crc(0x07);
 
+void (*reset) (void) = 0;
+
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
 
@@ -35,7 +37,7 @@ UpdateState currentUpdateState = IDLE;
 byte updateBuffer[3];
 int updateIndex = 0;  
 unsigned long updateStartTime = 0;           
-const unsigned long UPDATE_TIMEOUT = 500;  
+const unsigned long UPDATE_TIMEOUT = 1000;  
 
 // unsigned long points = 100;
 // unsigned long ammo = 6;
@@ -252,6 +254,7 @@ void shootAmmo(unsigned long currentMillis)
 
 void updateLed()
 {
+
   int numFullLed = gameState.ammo / 2;
   bool hasHalfLed = gameState.ammo % 2 == 1;
 
@@ -331,7 +334,7 @@ void initiateHandshake() {
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        //reset();
+        reset();
         break;
 
       default:
@@ -389,7 +392,7 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          //reset();
+          reset();
           break;
         case 'g':
           // Gun ACK from Python.
@@ -436,13 +439,13 @@ void loop() {
   sendData();
 
   // temp auto reload
-  //if (gameState.ammo == 0)
-  //{
-    // Serial.println("Reloading...");
-    // delay(500);
-    // Serial.println("Done reloading");
-    //gameState.ammo = 6;
-  //}
+  // if (gameState.ammo == 0)
+  // {
+  //   // Serial.println("Reloading...");
+  //   // delay(500);
+  //   // Serial.println("Done reloading");
+  //   gameState.ammo = 6;
+  // }
 
   unsigned long currentMillis = millis();
 
@@ -536,15 +539,15 @@ void resendGunpacket() {
   Serial.write((uint8_t *)&lastGunpacket, sizeof(lastGunpacket));
 }
 
-int16_t getChecksum(Datapacket packet){
+long getChecksum(Datapacket packet){
   return packet.type ^ packet.aX ^ packet.aY ^ packet.aZ ^ packet.gX ^ packet.gY ^ packet.gZ ^ packet.y ^ packet.p ^ packet.r ^ packet.start_move;
 }
 
-int16_t getAckChecksum(Ackpacket packet){
+long getAckChecksum(Ackpacket packet){
   return packet.type ^ packet.padding_1 ^ packet.padding_2 ^ packet.padding_3 ^ packet.padding_4 ^ packet.padding_5 ^ packet.padding_6 ^ packet.padding_7 ^ packet.padding_8 ^ packet.padding_9;
 }
 
-int16_t getGunChecksum(Gunpacket lastGunpacket) {
+long getGunChecksum(Gunpacket lastGunpacket) {
     uint8_t *data = (uint8_t *)&lastGunpacket;
     int len = sizeof(Gunpacket) - sizeof(lastGunpacket.checksum);
     crc.restart();

@@ -25,7 +25,7 @@
 
 CRC8 crc(0x07);
 
-void (*reset) (void) = 0;
+//void (*reset) (void) = 0;
 
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
@@ -102,7 +102,7 @@ boolean hasSentHit = false;
 boolean hasAcknowledgedHit = false;
 unsigned long timeoutStartHit = 0;
 const unsigned long TIMEOUT_VALHIT = 750;
-const unsigned long TIMEOUT_LAST_SENT_HIT = 2000;
+const unsigned long TIMEOUT_LAST_SENT_HIT = 100;
 unsigned long lastHitSendTime = 0;
 boolean lastsentHitindex = true;
 
@@ -110,7 +110,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  Serial.println("Initializing...");
+  //Serial.println("Initializing...");
   // LED strip setup
   setup_led();
 
@@ -120,7 +120,7 @@ void setup()
   // Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
 
-  Serial.println("Done init");
+  //Serial.println("Done init");
 }
 
 void setup_led()
@@ -134,7 +134,7 @@ void setup_led()
 void setup_ir_receiver()
 {
   IrReceiver.begin(IR_RECEIVER_PIN, ENABLE_LED_FEEDBACK); // Enable feedback LED if available
-  Serial.println("IR Receiver initialized.");
+  //Serial.println("IR Receiver initialized.");
 }
 
 void receive_ir_signal(unsigned long currentMillis)
@@ -284,7 +284,7 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          reset();
+          //reset();
           break;
         case 'g':
           // Gun ACK from Python.
@@ -318,7 +318,7 @@ void sendAck() {
   Serial.write((uint8_t *)&packet, sizeof(packet));
 }
 
-long getAckChecksum(Ackpacket packet){
+int16_t getAckChecksum(Ackpacket packet){
   return packet.type ^ packet.padding_1 ^ packet.padding_2 ^ packet.padding_3 ^ packet.padding_4 ^ packet.padding_5 ^ packet.padding_6 ^ packet.padding_7 ^ packet.padding_8 ^ packet.padding_9;
 }
 
@@ -336,11 +336,12 @@ void initiateHandshake() {
       case 'a':
         if (protoState == WAITING_FOR_ACK) {
           protoState = CONFIRMED;
+          //Serial.println("I HAVE CONFIRMED HANDSHAKE!");
         }
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        reset();
+        //reset();
         break;
 
       default:
@@ -367,7 +368,7 @@ void sendhit() {
   Serial.write((uint8_t *)&lastHitpacket, sizeof(lastHitpacket));
 }
 
-long getHitChecksum(Hitpacket lastHitpacket) {
+int16_t getHitChecksum(Hitpacket lastHitpacket) {
   uint8_t *data = (uint8_t *)&lastHitpacket;
   int len = sizeof(Hitpacket) - sizeof(lastHitpacket.checksum);
   crc.restart();
