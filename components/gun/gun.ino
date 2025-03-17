@@ -29,10 +29,6 @@ CRGB leds[NUM_LEDS];
 CRC8 crc(0x07);
 
 // void (*reset) (void) = 0;
-void reset() {
-  wdt_enable(WDTO_15MS);
-  while (1) {}
-}
 
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
@@ -329,7 +325,8 @@ void initiateHandshake() {
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        reset();
+        wdt_enable(WDTO_15MS);
+        while (1) {}
         break;
 
       default:
@@ -390,7 +387,8 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          reset();
+          wdt_enable(WDTO_15MS);
+          while (1) {}
           break;
         case 'g':
           // Gun ACK from Python.
