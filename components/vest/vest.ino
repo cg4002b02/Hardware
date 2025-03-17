@@ -299,6 +299,9 @@ void updateGameState() {
           hasSentHit = false;          // Hit ACK from Python.
           break;
         default:
+          while(Serial.available()){
+            Serial.read();
+          }
           break;
       }
     }
