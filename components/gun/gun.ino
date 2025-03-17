@@ -244,10 +244,10 @@ void shootAmmo(unsigned long currentMillis)
   }
 }
 
-void updateLed()
+void updateLed(int ammo)
 {
-  int numFullLed = gameState.ammo / 2;
-  bool hasHalfLed = gameState.ammo % 2 == 1;
+  int numFullLed = ammo / 2;
+  bool hasHalfLed = ammo % 2 == 1;
 
   for (int i = 0; i < numFullLed; ++i)
   {
@@ -312,14 +312,18 @@ void initiateHandshake() {
     incoming = Serial.read();
     switch(incoming) {
       case HANDSHAKE:
+        updateLed(2);
         protoState = HANDSHAKE_INITIATED;
         if (protoState == DISCONNECTED || protoState == HANDSHAKE_INITIATED) {
+          updateLed(3);
           sendAck();
           protoState = WAITING_FOR_ACK;
         }
         break;
       case 'a':
+        updateLed(4);
         if (protoState == WAITING_FOR_ACK) {
+          updateLed(5);
           protoState = CONFIRMED;
         }
         break;
@@ -412,6 +416,7 @@ void updateGameState() {
 void loop() {  
   // If handshake is not confirmed, process only handshake-related bytes.
   if (protoState != CONFIRMED) {
+    updateLed(1);
     initiateHandshake();
 
     // Do nothing else until handshake is CONFIRMED.
@@ -449,7 +454,7 @@ void loop() {
   unsigned long currentMillis = millis();
 
   shootAmmo(currentMillis);
-  updateLed();
+  updateLed(gameState.ammo);
 
   // if (hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
   //     resendGunpacket();
