@@ -5,6 +5,7 @@
 #include <FastLED.h>
 #include <IRremote.h>
 #include <Wire.h>
+#include <avr/wdt.h>
 
 #define HANDSHAKE 'h'
 #define ACK 1
@@ -26,6 +27,8 @@ MPU6050 mpu;
 CRGB leds[NUM_LEDS];
 
 CRC8 crc(0x07);
+
+// void (*reset) (void) = 0;
 
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
@@ -225,8 +228,6 @@ void shootAmmo(unsigned long currentMillis)
 {
   if (!buttonPressed && digitalRead(BUTTON_PIN) == HIGH)
   {
-    if (gameState.ammo > 0)
-    {
       sendGun();
 
       hasSentGun = true;
@@ -236,13 +237,6 @@ void shootAmmo(unsigned long currentMillis)
       buttonPressed = true;
       sendIrSignal();
 
-      // TODO: might not need since getting gameStates from python
-      // --gameState.ammo;
-    }
-    else
-    {
-      // Serial.println("No ammo left. Please reload...");
-    }
   }
   if (digitalRead(BUTTON_PIN) == LOW)
   {
@@ -250,10 +244,10 @@ void shootAmmo(unsigned long currentMillis)
   }
 }
 
-void updateLed()
+void updateLed(int ammo)
 {
-  int numFullLed = gameState.ammo / 2;
-  bool hasHalfLed = gameState.ammo % 2 == 1;
+  int numFullLed = ammo / 2;
+  bool hasHalfLed = ammo % 2 == 1;
 
   for (int i = 0; i < numFullLed; ++i)
   {
@@ -318,24 +312,32 @@ void initiateHandshake() {
     incoming = Serial.read();
     switch(incoming) {
       case HANDSHAKE:
+        updateLed(2);
         protoState = HANDSHAKE_INITIATED;
         if (protoState == DISCONNECTED || protoState == HANDSHAKE_INITIATED) {
+          updateLed(3);
           sendAck();
           protoState = WAITING_FOR_ACK;
         }
         break;
       case 'a':
+        updateLed(4);
         if (protoState == WAITING_FOR_ACK) {
+          updateLed(5);
           protoState = CONFIRMED;
         }
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        //reset();
+        wdt_enable(WDTO_15MS);
+        while (1) {}
         break;
 
       default:
         // Ignore any other data.
+        while(Serial.available()){
+          Serial.read();
+        }
         break;
     }
   }
@@ -389,7 +391,9 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          //reset();
+
+          wdt_enable(WDTO_15MS);
+          while (1) {}
           break;
         case 'g':
           // Gun ACK from Python.
@@ -401,6 +405,9 @@ void updateGameState() {
           hasSentHit = false;          // Hit ACK from Python.
           break;
         default:
+          while(Serial.available()){
+            Serial.read();
+          }
           break;
       }
     }
@@ -410,6 +417,7 @@ void updateGameState() {
 void loop() {  
   // If handshake is not confirmed, process only handshake-related bytes.
   if (protoState != CONFIRMED) {
+    updateLed(1);
     initiateHandshake();
 
     // Do nothing else until handshake is CONFIRMED.
@@ -435,26 +443,15 @@ void loop() {
   // }
   sendData();
 
-  // temp auto reload
-  //if (gameState.ammo == 0)
-  //{
-    // Serial.println("Reloading...");
-    // delay(500);
-    // Serial.println("Done reloading");
-    //gameState.ammo = 6;
-  //}
-
   unsigned long currentMillis = millis();
 
-  if (!hasSentGun) {
-    shootAmmo(currentMillis);
-  }
-  updateLed();
+  shootAmmo(currentMillis);
+  updateLed(gameState.ammo);
 
-  if (hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
-      resendGunpacket();
-      timeoutStart = currentMillis;
-  }
+  // if (hasSentGun && !hasAcknowledgedGun && (currentMillis - timeoutStart >= TIMEOUT_VAL)) {
+  //     resendGunpacket();
+  //     timeoutStart = currentMillis;
+  // }
   
   delay(50); // period = 50ms = 20Hz -> 20 samples per second
 }

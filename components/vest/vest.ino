@@ -4,6 +4,7 @@
 #include <IRremote.h>
 #include <FastLED.h>
 #include <IRremote.h>
+#include <avr/wdt.h>
 
 #define HANDSHAKE 'h'
 #define ACK 1
@@ -110,6 +111,9 @@ void setup()
 {
   Serial.begin(115200);
 
+  if(Serial.available() > 0){
+    Serial.read();
+  }
   //Serial.println("Initializing...");
   // LED strip setup
   setup_led();
@@ -284,7 +288,9 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          //reset();
+
+          wdt_enable(WDTO_15MS);
+          while (1) {}
           break;
         case 'g':
           // Gun ACK from Python.
@@ -296,6 +302,9 @@ void updateGameState() {
           hasSentHit = false;          // Hit ACK from Python.
           break;
         default:
+          while(Serial.available()){
+            Serial.read();
+          }
           break;
       }
     }
@@ -341,11 +350,15 @@ void initiateHandshake() {
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        //reset();
+        wdt_enable(WDTO_15MS);
+        while (1) {}
         break;
 
       default:
         // Ignore any other data.
+        while(Serial.available()){
+          Serial.read();
+        }
         break;
     }
   }
@@ -397,33 +410,34 @@ void loop() {
 
   unsigned long currentMillis = millis();
 
-  if (!hasSentHit) {
-    receive_ir_signal(currentMillis);
-    // sendhit();
-    // lastHitSendTime = currentMillis;
-    // hasSentHit = true;
-    // hasAcknowledgedHit = false;
-    // timeoutStartHit = lastHitSendTime;
-  }
+  // if (!hasSentHit) {
+  //   receive_ir_signal(currentMillis);
+  //   // sendhit();
+  //   // lastHitSendTime = currentMillis;
+  //   // hasSentHit = true;
+  //   // hasAcknowledgedHit = false;
+  //   // timeoutStartHit = lastHitSendTime;
+  // }
 
   // play buzzer when shot
-  if (gameState.health < prev_health) {
+  if (gameState.health != prev_health) {
     play_buzzer();
   }
+
   prev_health = gameState.health;
 
+  sendhit();
   // sendhit every 2 seconds to prevent beetle from disconnecting
-  if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
-    sendhit();
-    lastHitSendTime = currentMillis;
-  }
+  // if (currentMillis - lastHitSendTime >= TIMEOUT_LAST_SENT_HIT) {
+  //   lastHitSendTime = currentMillis;
+  // }
 
-  if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
-      resendHitpacket();
-      timeoutStartHit = currentMillis;
-  }
+  // if (hasSentHit && !hasAcknowledgedHit && (currentMillis - timeoutStartHit >= TIMEOUT_VALHIT)) {
+  //     resendHitpacket();
+  //     timeoutStartHit = currentMillis;
+  // }
 
   update_led();
 
-  // delay(50);
+  delay(50);
 }

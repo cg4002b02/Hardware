@@ -2,6 +2,7 @@
 #include "CRC8.h" 
 #include <MPU6050.h>
 #include <Arduino.h>
+#include <avr/wdt.h>
 
 #define HANDSHAKE 'h'
 #define ACK 1
@@ -13,7 +14,7 @@
 
 CRC8 crc(0x07);
 
-//void (*reset) (void) = 0;
+// void (*reset) (void) = 0;
 
 enum ProtoState { DISCONNECTED, HANDSHAKE_INITIATED, WAITING_FOR_ACK, CONFIRMED};
 ProtoState protoState = DISCONNECTED;
@@ -23,7 +24,7 @@ UpdateState currentUpdateState = IDLE;
 byte updateBuffer[3];
 int updateIndex = 0;  
 unsigned long updateStartTime = 0;           
-const unsigned long UPDATE_TIMEOUT = 100;      
+const unsigned long UPDATE_TIMEOUT = 500;      
 
 unsigned long points = 100;
 unsigned long ammo = 6;
@@ -185,11 +186,16 @@ void initiateHandshake() {
         break;
       case 'r':  // Reset command from Python, if any.
         protoState = DISCONNECTED;
-        //reset();
+
+        wdt_enable(WDTO_15MS);
+        while (1) {}
         break;
 
       default:
         // Ignore any other data.
+        while(Serial.available()){
+          Serial.read();
+        }
         break;
     }
   }
@@ -235,7 +241,9 @@ void updateGameState() {
       switch (incoming) {
         case 'r':  // Reset state
           protoState = DISCONNECTED;
-          //reset();
+
+          wdt_enable(WDTO_15MS);
+          while (1) {}
           break;
         case 'g':
           // Gun ACK from Python.
@@ -247,6 +255,9 @@ void updateGameState() {
           hasSentHit = false;          // Hit ACK from Python.
           break;
         default:
+          while(Serial.available()){
+            Serial.read();
+          }
           break;
       }
     }
